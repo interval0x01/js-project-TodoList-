@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>todo list</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <style>
+      body {
+        background: linear-gradient(to right, red, blue);
+      }
+      .taskInput {
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        width: 300px;
+        font-size: 16px;
+        margin-top: 20px;
+        outline: none;
+      }
+
+      h1 {
+        color: white;
+      }
+      .tasklist {
+        margin-top: 10px;
+        padding: 20px;
+      }
+      .add {
+        border: none;
+        background-color: #f44336;
+        color: white;
+        padding: 10px;
+        border-radius: 6px;
+        margin-left: 10px;
+        cursor: pointer;
+      }
+      h1 {
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+        margin-top: 20px;
+        padding-right: 50px;
+      }
+
+      .tasklist .task {
+        background-color: white;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+      }
+      .del {
+        color: red;
+        cursor: pointer;
+      }
+     
+      .con {
+        text-align: center;
+      }
+      .tasklist {
+        background-color: f7f7f7;
+        border-radius: 10px;
+        width: 400px;
+        margin: auto;
+        font-size: 20px;
+      }
+      .task.done{
+        text-decoration: line-through;
+      }
+    </style>
+    <div class="con">
+      <h1>Todo list</h1>
+
+      <input type="text" class="taskInput" />
+      <input type="submit" class="add" value="add task" />
+    </div>
+    <div class="tasklist"></div>
+
+    <script>
+      let input = document.querySelector(".taskInput");
+      let submit = document.querySelector(".add");
+      let taskList = document.querySelector(".tasklist");
+      let arrayofTasks = [];
+
+      if (localStorage.getItem("tasks")) {
+        arrayofTasks = JSON.parse(localStorage.getItem("tasks"));
+      }
+
+      // get data from local storage
+      getDatafromlocalstorage();
+
+      submit.onclick = function () {
+        if (input.value !== "") {
+          addtasktoarray(input.value);
+          input.value = "";
+        }
+      };
+      function addtasktoarray(taskText) {
+        const Task = {
+          id: Date.now(),
+          title: taskText,
+          completed: false,
+        };
+        arrayofTasks.push(Task);
+        addelementstopage(arrayofTasks);
+        // local
+        addDatatoloacalstorage(arrayofTasks);
+      }
+      function addelementstopage(arrayOfTasks) {
+        // Empty Tasks Div
+        taskList.innerHTML = "";
+        // Looping On Array Of Tasks
+        arrayofTasks.forEach((task) => {
+          // Create Main Div
+          let div = document.createElement("div");
+          div.className = "task";
+          // Check If Task is Done
+          if (task.completed) {
+            div.className = "task done";
+          }
+          div.setAttribute("data-id", task.id);
+          div.appendChild(document.createTextNode(task.title));
+          // Create Delete Button
+          let span = document.createElement("span");
+          span.className = "del";
+          span.appendChild(document.createTextNode("Delete"));
+          // Append Button To Main Div
+          div.appendChild(span);
+          // Add Task Div To Tasks Container
+          taskList.appendChild(div);
+        });
+      }
+
+      function addDatatoloacalstorage(arrayofTasks) {
+        window.localStorage.setItem("tasks", JSON.stringify(arrayofTasks));
+      }
+
+      function getDatafromlocalstorage() {
+        let data = window.localStorage.getItem("tasks");
+        if (data) {
+          let tasks = JSON.parse(data);
+          addelementstopage(tasks);
+        }
+      }
+      function deletetaskwith(taskId) {
+        // For Explain Only
+        // for (let i = 0; i < arrayOfTasks.length; i++) {
+        //   console.log(`${arrayOfTasks[i].id} === ${taskId}`);
+        // }
+        arrayofTasks = arrayofTasks.filter((task) => task.id !== taskId);
+        addelementstopage(arrayofTasks);
+        addDatatoloacalstorage(arrayofTasks);
+      }
+      // on hover linethorough the element
+    
+      taskList.addEventListener("click",(e)=>{
+
+      });
+      taskList.addEventListener("click", (e) => {
+        // Delete Button
+        if (e.target.classList.contains("del")) {
+          // Remove Task From Page
+          e.target.parentElement.remove();
+          // Remove Task From Local Storage
+          deletetaskwith(
+            parseInt(e.target.parentElement.getAttribute("data-id"))
+          );
+        }
+        // Task Element
+        if (e.target.classList.contains("task")) {
+          // Toggle Done Class
+          e.target.classList.toggle("done");
+          // Toggle Completed For The Task Object
+          toggleTaskWith(parseInt(e.target.getAttribute("data-id")));
+        }
+      });
+      function toggleTaskWith(taskId) {
+        for (let i = 0; i < arrayofTasks.length; i++) {
+          if (arrayofTasks[i].id === taskId) {
+            arrayofTasks[i].completed = !arrayofTasks[i].completed;
+            break;
+          }
+        }
+        addDatatoloacalstorage(arrayofTasks);
+      }
+      // on press enter key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          submit.click();
+        }
+      });
+      // on press del key delete the last task
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Delete") {
+          let lastTask = taskList.lastElementChild;
+          if (lastTask) {
+            let lastTaskId = parseInt(lastTask.getAttribute("data-id"));
+            lastTask.remove();
+            deletetaskwith(lastTaskId);
+          }
+        }
+      });
+    
+    </script>
+  </body>
+</html>
